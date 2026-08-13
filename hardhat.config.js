@@ -2,8 +2,8 @@
  * Hardhat config — compile-only setup.
  *
  * This project does NOT use Hardhat to deploy. Deployment goes through the
- * Hedera JS SDK in deploy.js, which reads the artifact JSON that Hardhat
- * writes to ./artifacts/contracts/<File>.sol/<Contract>.json.
+ * Hedera JS SDK in deploy-voting.js, which reads the artifact JSON that
+ * Hardhat writes to ./artifacts/contracts/<File>.sol/<Contract>.json.
  *
  * So there is deliberately no `networks` block here: Hedera speaks gRPC, not
  * the JSON-RPC that Hardhat's network config expects.

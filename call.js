@@ -102,8 +102,12 @@ function decodeReturn(result, type) {
 
 /**
  * Parse a private key that is either DER-encoded or a raw hex string.
- * See the longer note in deploy.js: trying fromStringDer() first and falling
- * back on throw is wrong, because it silently misreads raw hex as ED25519.
+ *
+ * Note: do NOT try fromStringDer() first and fall back when it throws. Given a
+ * raw 32-byte hex key it does not throw -- it silently returns an ED25519 key,
+ * which for the HEX ECDSA key of a Hedera Portal account is the wrong key
+ * entirely, and every transaction then fails with INVALID_SIGNATURE. So
+ * dispatch on the input format instead.
  */
 function parsePrivateKey(raw) {
   const trimmed = raw.trim();

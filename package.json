@@ -1,9 +1,8 @@
 {
-  "name": "hedera-deploy",
+  "name": "hedera-voting",
   "version": "1.0.0",
-  "description": "Deploy a compiled smart contract to the Hedera Testnet via the Hedera JS SDK and call it.",
+  "description": "A voting smart contract on the Hedera Testnet: topics fixed at construction, one vote per account, and an admin-managed blocklist.",
   "type": "module",
-  "main": "deploy.js",
   "scripts": {
     "compile": "hardhat compile",
     "clean": "hardhat clean",
@@ -13,7 +12,6 @@
     "status": "node status.js",
     "vote": "node vote.js",
     "block": "node block.js",
-    "deploy": "node deploy.js",
     "call": "node call.js"
   },
   "dependencies": {

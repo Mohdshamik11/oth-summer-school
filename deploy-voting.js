@@ -1,23 +1,23 @@
 /**
  * Deploy the Voting contract and remember its id.
  *
- * Same job as the course's deploy.js, plus two conveniences for a live demo:
- * it fills in the three topics for you, and it writes CONTRACT_ID into .env so
- * vote.js / block.js / status.js can find the contract without you pasting an
- * id into every command.
+ * This is the only deployment path in the project. It reads the bytecode that
+ * Hardhat compiled, passes the three topics and the admin address to the
+ * constructor, and writes CONTRACT_ID into .env so vote.js / block.js /
+ * status.js can find the contract without an id being pasted into every
+ * command.
  *
- * The constructor also takes the admin address - the only account allowed to
- * change the blocklist. It defaults to the ADMIN_* account in .env.
+ * The admin is the only account allowed to change the blocklist. It defaults
+ * to the ADMIN_* account in .env.
  *
  * Usage:
  *   node deploy-voting.js
  *   node deploy-voting.js --topics "Pizza,Pasta,Sushi"
  *   node deploy-voting.js --admin voter2        (or a raw 0x address)
  *
- * The equivalent using the course script directly:
- *   node deploy.js ./artifacts/contracts/Voting.sol/Voting.json --gas 1000000 \
- *     --arg-string "Pizza" --arg-string "Pasta" --arg-string "Sushi" \
- *     --arg-address 0xTHE_ADMIN_ADDRESS
+ * Note: an admin passed as a raw address must be the 0x... EVM form. A Hedera
+ * 0.0.x id converts to the "long zero" address, which is NOT the ECDSA-derived
+ * address that appears as msg.sender - the admin role would be unusable.
  */
 
 import fs from "node:fs";
