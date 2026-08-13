@@ -138,14 +138,28 @@ function buildConstructorParams(argSpecs) {
 /* 3. Build the Hedera client for Testnet                              */
 /* ------------------------------------------------------------------ */
 
-/** Parse a private key that may be DER-encoded or a raw ECDSA/ED25519 hex string. */
+/**
+ * Parse a private key that is either DER-encoded or a raw hex string.
+ *
+ * Note: do NOT try fromStringDer() first and fall back when it throws. Given a
+ * raw 32-byte hex key it does not throw -- it silently returns an ED25519 key.
+ * For the "HEX Encoded Private Key" of an ECDSA account from the Hedera Portal
+ * that yields the wrong public key, and every transaction then fails with
+ * INVALID_SIGNATURE. So dispatch on the input format instead.
+ */
 function parsePrivateKey(raw) {
-  try {
-    return PrivateKey.fromStringDer(raw);
-  } catch {
-    // Fall back to raw ECDSA hex (Hedera Portal "HEX Encoded Private Key").
-    return PrivateKey.fromStringECDSA(raw);
+  const trimmed = raw.trim();
+  const hex = trimmed.replace(/^0x/i, "");
+
+  // A bare 32-byte key is 64 hex chars. Anything longer carries a DER prefix,
+  // which encodes the key type, so the SDK can determine it on its own.
+  if (/^[0-9a-fA-F]{64}$/.test(hex)) {
+    // Raw hex does not say which curve it is. Assume secp256k1: that is what
+    // this project needs for a real EVM msg.sender. A raw ED25519 hex key
+    // would need PrivateKey.fromStringED25519(hex) here instead.
+    return PrivateKey.fromStringECDSA(hex);
   }
+  return PrivateKey.fromStringDer(trimmed);
 }
 
 function makeTestnetClient() {

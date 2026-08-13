@@ -34,14 +34,17 @@ import {
 /* ================================================================== */
 
 // 1. The contract you want to call (e.g. "0.0.1234567").
-const CONTRACT_ID = "0.0.xxxxx"; // TODO
+//    Falls back to CONTRACT_ID in .env, which deploy-voting.js keeps current.
+const CONTRACT_ID = process.env.CONTRACT_ID ?? "0.0.10051773";
 
 // 2. "query"   -> read-only view/pure function (free, no state change)
 //    "execute" -> state-changing function (costs gas, produces a receipt status)
-const MODE = "query"; // TODO: "query" | "execute"
+const MODE = "query";
 
 // 3. Name of the Solidity function to call.
-const METHOD_NAME = "myMethod"; // TODO
+//    getResults() returns the whole tally as one string, which is exactly why
+//    it was designed that way: this template's decoder reads it unmodified.
+const METHOD_NAME = "getResults";
 
 // 4. Gas limit (needed for both a query result and an execute transaction).
 const GAS = 100_000; // TODO: adjust if your method needs more
@@ -49,7 +52,7 @@ const GAS = 100_000; // TODO: adjust if your method needs more
 // 5. The single return type to decode. Set to null if the method returns nothing.
 //    Supported: "string" | "bool" | "address" | "uint256" | "int256" |
 //               "uint64" | "int64" | "uint32" | "int32" | "bytes" | "bytes32"
-const RETURN_TYPE = "string"; // TODO: set to the type your method returns, or null
+const RETURN_TYPE = "string";
 
 /**
  * 6. Build the call arguments here, in the order the Solidity function expects.
@@ -62,11 +65,8 @@ const RETURN_TYPE = "string"; // TODO: set to the type your method returns, or n
  *   params.addBool(true);
  */
 function buildParams() {
-  const params = new ContractFunctionParameters();
-  // TODO: add your arguments, e.g.:
-  // params.addString("hello");
-  // params.addUint256(42);
-  return params;
+  // getResults() takes no arguments, so this stays empty.
+  return new ContractFunctionParameters();
 }
 
 /* ================================================================== */
@@ -100,13 +100,19 @@ function decodeReturn(result, type) {
   return { value: decoder(result), type };
 }
 
-/** Parse a private key that may be DER-encoded or a raw ECDSA/ED25519 hex string. */
+/**
+ * Parse a private key that is either DER-encoded or a raw hex string.
+ * See the longer note in deploy.js: trying fromStringDer() first and falling
+ * back on throw is wrong, because it silently misreads raw hex as ED25519.
+ */
 function parsePrivateKey(raw) {
-  try {
-    return PrivateKey.fromStringDer(raw);
-  } catch {
-    return PrivateKey.fromStringECDSA(raw);
+  const trimmed = raw.trim();
+  const hex = trimmed.replace(/^0x/i, "");
+
+  if (/^[0-9a-fA-F]{64}$/.test(hex)) {
+    return PrivateKey.fromStringECDSA(hex);
   }
+  return PrivateKey.fromStringDer(trimmed);
 }
 
 function makeTestnetClient() {
